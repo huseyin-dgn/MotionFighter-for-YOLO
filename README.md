@@ -1,124 +1,115 @@
 # MotionFighter-for-YOLO
 
-Multi-stage fight detection pipeline combining:
+Çok aşamalı kavga tespit sistemi:
 
--   Motion-based event segmentation
--   ROI-driven YOLO person detection
--   Temporal analysis & final decision layer
--   Structured reporting (CSV / JSON outputs)
+-   Hareket tabanlı olay segmentasyonu (Motion Stage)
+-   ROI tabanlı YOLO kişi analizi (Spatial Stage)
+-   Olay bazlı karar üretimi ve raporlama (Final Stage)
 
-Designed for efficiency: YOLO does **not** run on full-frame
-continuously.\
-Motion stage filters irrelevant frames before spatial detection.
+Bu belge, **run_20260226_045804** çıktısına ait nihai doğrulama ve rapor
+verilerini doğrudan gömülü şekilde içerir.
 
 ------------------------------------------------------------------------
 
-# 🧠 System Architecture
+# 🎯 Nihai Doğrulama Sonucu
 
-Pipeline Stages:
+## ✅ KARAR: **KAVGA TESPİT EDİLDİ**
 
-1.  **Motion Detection (BG Subtractor)**
-    -   Frame differencing / background subtraction
-    -   Motion score computation
-    -   Event segmentation (start--end frames)
-2.  **YOLO Stage (ROI-Based)**
-    -   Person detection only inside motion regions
-    -   Interaction-based ROI selection
-    -   ROI stabilization
-3.  **Final Stage**
-    -   Event-level aggregation
-    -   Structured reporting
-    -   Optional visualization export
+# 📊 Olay Bazlı Sonuç Tablosu
 
-------------------------------------------------------------------------
+  -------------------------------------------------------------------------------------------------------------
+  Olay        Başlangıç   Bitiş    Süre    Skor       Etiket      Sebep             Maksimum   Oran   Clip
+              (sn)        (sn)     (sn)                                             Clip              Sayısı
+  ----------- ----------- -------- ------- ---------- ----------- ----------------- ---------- ------ ---------
+  event_001   0.0         0.0      0.0     0.002617   non_fight   skor_düşük        0.002617   0.0    1
 
-# 🎞 Motion Debug Overlay (6s--10s)
+  event_002   0.0         0.0      0.0     0.383005   non_fight   skor_düşük        0.813965   0.4    5
 
-Below GIF shows motion mask + ROI behavior between seconds 6--10:
+  event_003   0.0         0.0      0.0     0.537231   fight       sınırda_kanıtlı   0.714844   0.5    2
 
-![Motion Debug Overlay
-6-10s](fight/pipeline/outputs/run_20260226_045804/motion/debug_overlay_6s_10s.gif)
-
-File:
-fight/pipeline/outputs/run_20260226_045804/motion/debug_overlay_6s_10s.gif
+  event_004   0.0         0.0      0.0     0.156738   non_fight   skor_düşük        0.16333    0.0    2
+  -------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------
 
-# 📊 Final Report (Summarized CSV)
+# 🔎 Kanıt Analizi 
 
-File: fight/pipeline/outputs/run_20260226_045804/final/report.csv
+### event_001
 
-Example (trimmed for readability):
+-   Etiket: non_fight\
+-   Skor: 0.003\
+-   Açıklama: skor(0.003) \< eşik(0.45)\
+-   En yüksek clip: #0 → 0.003
 
-  --------------------------------------------------------------------------
-  event_id   start_sec   end_sec   motion_score    person_count   decision
-  ---------- ----------- --------- --------------- -------------- ----------
-  003        7.92        12.48     0.81            2              Fight
+### event_002
 
-  --------------------------------------------------------------------------
+-   Etiket: non_fight\
+-   Skor: 0.383\
+-   Açıklama: skor(0.383) \< eşik(0.45)\
+-   En yüksek clip skorları:
+    -   #3 → 0.814\
+    -   #4 → 0.596\
+    -   #2 → 0.437
 
-------------------------------------------------------------------------
+### event_003 ← **Kavga Olayı**
 
-# 📄 Verification Output
+-   Etiket: fight\
+-   Skor: 0.537\
+-   Karar Mantığı:
 
-File: fight/pipeline/outputs/run_20260226_045804/final/verify.txt
-
-Example:
-
-    Run ID: run_20260226_045804
-    Events detected: 4
-    Final decision: Fight detected in event_003
-    Confidence: High
-
-------------------------------------------------------------------------
-
-# 🚀 How To Run
-
-## Stage-2 (Motion + YOLO export)
-
-``` powershell
-python -m yolo.src.stage2.run_export_events `
-  "sample_2.mp4" `
-  -c "motion/configs/motion.yaml" `
-  --yolo-config "yolo/configs/yolo.yaml"
+```{=html}
+<!-- -->
 ```
+    skor(0.537) ≥ eşik(0.45)
+    VE
+    (max_clip(0.715) ≥ 0.70
+     VEYA
+     oran(0.50) ≥ 0.25)
 
-## Full Pipeline (Skip motion & YOLO if already computed)
+-   En yüksek clip skorları:
+    -   #1 → 0.715\
+    -   #0 → 0.360
 
-``` powershell
-python -m pipeline.run_full --config pipeline/configs/pipeline.yaml --skip-motion --skip-yolo --visualize
-```
+### event_004
 
-------------------------------------------------------------------------
-
-# 📁 Output Structure
-
-fight/pipeline/outputs/run\_`<timestamp>`{=html}/
-
--   motion/
--   yolo/
--   stage3/
--   final/
-    -   report.csv
-    -   verify.txt
-    -   summary.json
-    -   annotated videos
+-   Etiket: non_fight\
+-   Skor: 0.157\
+-   Açıklama: skor(0.157) \< eşik(0.45)\
+-   En yüksek clip:
+    -   #1 → 0.163
 
 ------------------------------------------------------------------------
 
-# 🧩 Design Goals
+# 🚨 Tespit Edilen Kavga Olayı
 
--   Avoid full-frame YOLO inference
--   Reduce computational overhead
--   Maintain temporal consistency
--   Export structured, analyzable logs
--   Research-oriented modular design
+**event_003**\
+Skor: 0.537231
+
+Karar nedeni:
+
+Sınırda skor ≥ eşik VE güçlü clip kanıtı (max_clip ≥ 0.70 veya oran ≥
+0.25).
 
 ------------------------------------------------------------------------
 
-# Notes
+# 🧠 Sistem Karar Mantığı
 
--   Motion stage eliminates irrelevant frames.
--   YOLO runs only on motion-triggered segments.
--   Outputs are reproducible via YAML configs.
--   Suitable for research and prototyping.
+1.  Ortalama olay skoru hesaplanır\
+2.  Borderline eşik kontrol edilir\
+3.  Maksimum clip skoru değerlendirilir\
+4.  Pozitif clip oranı analiz edilir\
+5.  Nihai karar üretilir
+
+------------------------------------------------------------------------
+
+# 📌 Özet
+
+-   Toplam 4 olay analiz edildi\
+-   3 olay kavga dışı olarak sınıflandırıldı\
+-   1 olay (event_003) kavga olarak işaretlendi\
+-   Karar güçlü clip kanıtı ile desteklendi
+
+------------------------------------------------------------------------
+
+Bu çıktı, Motion + YOLO + olay bazlı karar mekanizmasının birleşik
+sonucudur.
