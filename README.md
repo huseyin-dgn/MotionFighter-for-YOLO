@@ -148,6 +148,77 @@ fight/pipeline/outputs/run\_`<timestamp>`{=html}/
 
 ------------------------------------------------------------------------
 
+# 📁 Bütün Klasör Yapısı Aşağıdaki Gibidir
+
+```text
+C:.
+│   README.md
+│   .gitignore
+│
+└── fight
+    │   sample_2.mp4
+    │   yolo11n.pt
+    │
+    ├── 3D_CNN
+    │   ├── configs
+    │   │   └── stage3.yaml
+    │   └── src
+    │       ├── aggregate.py
+    │       ├── clip_sampler.py
+    │       ├── infer.py
+    │       ├── model_loader.py
+    │       └── transforms.py
+    │
+    ├── motion
+    │   ├── run_motion_fixed.py
+    │   ├── configs
+    │   │   └── motion.yaml
+    │   └── src
+    │       ├── main.py
+    │       ├── core
+    │       │   └── config.py
+    │       ├── ingest
+    │       │   └── cam_reader.py
+    │       ├── motion
+    │       │   ├── bg_subtractor.py
+    │       │   ├── frame_diff.py
+    │       │   ├── gate.py
+    │       │   └── roi.py
+    │       ├── service
+    │       │   ├── motion_service.py
+    │       │   └── segmenter.py
+    │       └── utils
+    │           ├── image_ops.py
+    │           └── logger.py
+    │
+    ├── pipeline
+    │   ├── run_full.py
+    │   ├── visualize_event.py
+    │   └── configs
+    │       └── pipeline.yaml
+    │
+    ├── shared
+    │   ├── datamodel.py
+    │   ├── io.py
+    │   └── video.py
+    │
+    ├── tools
+    │   └── pack_pt_from_folder_v2.py
+    │
+    └── yolo
+        ├── requirements.txt
+        ├── configs
+        │   └── yolo.yaml
+        └── src
+            └── stage2
+                ├── run_export_events.py
+                ├── run_yolo_on_events.py
+                ├── stage2_core.py
+                └── utils_metrics.py
+```
+
+------------------------------------------------------------------------
+
 # 🎯 Tasarım Hedefleri
 
 -   Full-frame inference'dan kaçınmak
