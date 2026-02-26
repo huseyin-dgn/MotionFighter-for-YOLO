@@ -64,13 +64,14 @@ Overlay](fight/pipeline/outputs/run_20260226_045804/motion/debug_overlay_6s_10s.
 # 📊 Nihai Sonuç Özeti
 
 ## ✅ Karar: KAVGA TESPİT EDİLDİ
-
+```text
   Olay        Skor       Etiket      max_clip   oran   clip_sayısı
   ----------- ---------- ----------- ---------- ------ -------------
   event_001   0.002617   non_fight   0.002617   0.0    1
   event_002   0.383005   non_fight   0.813965   0.4    5
   event_003   0.537231   fight       0.714844   0.5    2
   event_004   0.156738   non_fight   0.163330   0.0    2
+```
 
 ------------------------------------------------------------------------
 
