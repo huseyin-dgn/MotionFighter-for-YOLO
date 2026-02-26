@@ -1,115 +1,97 @@
-# MotionFighter-for-YOLO
+# MotionFighter-for-YOLO — Nihai Rapor (TR)
 
-Çok aşamalı kavga tespit sistemi:
+Bu sayfa, **run_20260226_045804** çalıştırmasına ait çıktıları README içinde **gömülü** şekilde gösterir:
+- ✅ GIF (6–10 sn) önizleme
+- ✅ `verify.txt` içeriği (dosya yolları temizlenmiş)
+- ✅ `report.csv` içeriği (tabloya dönüştürülmüş, sade)
 
--   Hareket tabanlı olay segmentasyonu (Motion Stage)
--   ROI tabanlı YOLO kişi analizi (Spatial Stage)
--   Olay bazlı karar üretimi ve raporlama (Final Stage)
+---
 
-Bu belge, **run_20260226_045804** çıktısına ait nihai doğrulama ve rapor
-verilerini doğrudan gömülü şekilde içerir.
+## 🎞 Motion Debug Overlay (6–10 saniye)
 
-------------------------------------------------------------------------
+![Motion Debug Overlay 6–10s](fight/pipeline/outputs/run_20260226_045804/motion/debug_overlay_6s_10s.gif)
 
-# 🎯 Nihai Doğrulama Sonucu
+> Dosya: `fight/pipeline/outputs/run_20260226_045804/motion/debug_overlay_6s_10s.gif`
 
-## ✅ KARAR: **KAVGA TESPİT EDİLDİ**
+---
 
-# 📊 Olay Bazlı Sonuç Tablosu
+## 📄 Final Verification (verify.txt) — Gömülü
 
-  -------------------------------------------------------------------------------------------------------------
-  Olay        Başlangıç   Bitiş    Süre    Skor       Etiket      Sebep             Maksimum   Oran   Clip
-              (sn)        (sn)     (sn)                                             Clip              Sayısı
-  ----------- ----------- -------- ------- ---------- ----------- ----------------- ---------- ------ ---------
-  event_001   0.0         0.0      0.0     0.002617   non_fight   skor_düşük        0.002617   0.0    1
+### ✅ Karar: **KAVGA TESPİT EDİLDİ**
 
-  event_002   0.0         0.0      0.0     0.383005   non_fight   skor_düşük        0.813965   0.4    5
+| Olay | Başlangıç (sn) | Bitiş (sn) | Süre (sn) | Skor | Etiket | Gerekçe | max_clip | oran | clip_sayısı |
+|---|---:|---:|---:|---:|---|---|---:|---:|---:|
+| event_001 | 0.0 | 0.0 | 0.0 | 0.002617 | non_fight | score_low | 0.002617 | 0.0 | 1 |
+| event_002 | 0.0 | 0.0 | 0.0 | 0.383005 | non_fight | score_low | 0.813965 | 0.4 | 5 |
+| event_003 | 0.0 | 0.0 | 0.0 | 0.537231 | fight | borderline_with_evidence | 0.714844 | 0.5 | 2 |
+| event_004 | 0.0 | 0.0 | 0.0 | 0.156738 | non_fight | score_low | 0.163330 | 0.0 | 2 |
 
-  event_003   0.0         0.0      0.0     0.537231   fight       sınırda_kanıtlı   0.714844   0.5    2
+### 🔎 Kanıt (Why / Evidence)
 
-  event_004   0.0         0.0      0.0     0.156738   non_fight   skor_düşük        0.16333    0.0    2
-  -------------------------------------------------------------------------------------------------------------
+- **event_001**: non_fight — score(0.003) < thr_borderline(0.45)  
+  - top_clips: #0:0.003
+- **event_002**: non_fight — score(0.383) < thr_borderline(0.45)  
+  - top_clips: #3:0.814, #4:0.596, #2:0.437
+- **event_003**: fight — borderline score(0.537) ≥ thr_borderline(0.45) **ve** (max_clip(0.715) ≥ 0.70 **veya** ratio(0.50) ≥ 0.25)  
+  - top_clips: #1:0.715, #0:0.360
+- **event_004**: non_fight — score(0.157) < thr_borderline(0.45)  
+  - top_clips: #1:0.163, #0:0.150
 
-------------------------------------------------------------------------
+### ✅ Tespit Edilen Kavga Olayı
 
-# 🔎 Kanıt Analizi 
+- **event_003** — skor=0.537231  
+  - neden: borderline score(0.537) ≥ thr_borderline(0.45) **ve** (max_clip(0.715) ≥ 0.70 **veya** ratio(0.50) ≥ 0.25)
 
-### event_001
+---
 
--   Etiket: non_fight\
--   Skor: 0.003\
--   Açıklama: skor(0.003) \< eşik(0.45)\
--   En yüksek clip: #0 → 0.003
+## 📊 Final Report (report.csv) — Gömülü (Sade)
 
-### event_002
+> Dosya: `fight/pipeline/outputs/run_20260226_045804/final/report.csv`  
+> Not: Elinde CSV’nin tam içeriği varsa (satırların hepsi), buraya **tam tablo** olarak da gömerim. Şimdilik `verify.txt` tablosundaki ana metriklerle aynı özet gösteriliyor.
 
--   Etiket: non_fight\
--   Skor: 0.383\
--   Açıklama: skor(0.383) \< eşik(0.45)\
--   En yüksek clip skorları:
-    -   #3 → 0.814\
-    -   #4 → 0.596\
-    -   #2 → 0.437
+| Olay | Skor | Etiket | Gerekçe | max_clip | oran | clip_sayısı |
+|---|---:|---|---|---:|---:|---:|
+| event_001 | 0.002617 | non_fight | score_low | 0.002617 | 0.0 | 1 |
+| event_002 | 0.383005 | non_fight | score_low | 0.813965 | 0.4 | 5 |
+| event_003 | 0.537231 | fight | borderline_with_evidence | 0.714844 | 0.5 | 2 |
+| event_004 | 0.156738 | non_fight | score_low | 0.163330 | 0.0 | 2 |
 
-### event_003 ← **Kavga Olayı**
+---
 
--   Etiket: fight\
--   Skor: 0.537\
--   Karar Mantığı:
+## 🧠 Karar Mantığı (Okunaklı)
 
-```{=html}
-<!-- -->
+event_003 için karar koşulu:
+
+```text
+score >= thr_borderline
+VE
+( max_clip >= 0.70  VEYA  ratio >= 0.25 )
 ```
-    skor(0.537) ≥ eşik(0.45)
-    VE
-    (max_clip(0.715) ≥ 0.70
-     VEYA
-     oran(0.50) ≥ 0.25)
 
--   En yüksek clip skorları:
-    -   #1 → 0.715\
-    -   #0 → 0.360
+Bu yüzden event_003 **fight** olarak işaretlenir.
 
-### event_004
+---
 
--   Etiket: non_fight\
--   Skor: 0.157\
--   Açıklama: skor(0.157) \< eşik(0.45)\
--   En yüksek clip:
-    -   #1 → 0.163
+## 🏃‍♂️ Çalıştırma Komutları
 
-------------------------------------------------------------------------
+### Stage-2 Export (Motion + YOLO)
 
-# 🚨 Tespit Edilen Kavga Olayı
+```powershell
+python -m yolo.src.stage2.run_export_events `
+  "sample_2.mp4" `
+  -c "motion/configs/motion.yaml" `
+  --yolo-config "yolo/configs/yolo.yaml"
+```
 
-**event_003**\
-Skor: 0.537231
+### Full Pipeline (önceden hesaplandıysa motion + yolo atla)
 
-Karar nedeni:
+```powershell
+python -m pipeline.run_full --config pipeline/configs/pipeline.yaml --skip-motion --skip-yolo --visualize
+```
 
-Sınırda skor ≥ eşik VE güçlü clip kanıtı (max_clip ≥ 0.70 veya oran ≥
-0.25).
+---
 
-------------------------------------------------------------------------
+## 📌 Notlar
 
-# 🧠 Sistem Karar Mantığı
-
-1.  Ortalama olay skoru hesaplanır\
-2.  Borderline eşik kontrol edilir\
-3.  Maksimum clip skoru değerlendirilir\
-4.  Pozitif clip oranı analiz edilir\
-5.  Nihai karar üretilir
-
-------------------------------------------------------------------------
-
-# 📌 Özet
-
--   Toplam 4 olay analiz edildi\
--   3 olay kavga dışı olarak sınıflandırıldı\
--   1 olay (event_003) kavga olarak işaretlendi\
--   Karar güçlü clip kanıtı ile desteklendi
-
-------------------------------------------------------------------------
-
-Bu çıktı, Motion + YOLO + olay bazlı karar mekanizmasının birleşik
-sonucudur.
+- GitHub README içinde MP4 çoğu zaman oynatılmadığı için **GIF** önerilir.
+- Dosya yolu görünmesi istenmiyorsa rapor/verify çıktılarında path alanları temizlenmelidir (bu sayfada temizlendi).
