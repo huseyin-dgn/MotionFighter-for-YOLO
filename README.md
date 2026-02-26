@@ -8,10 +8,7 @@ hattı.
 
 # 🚀 Full Pipeline Run Output (Run ID: 20260226_045804)
 
-## 🎥 Motion Debug Overlay (6s -- 10s Preview)
-
-Aşağıdaki video, motion overlay çıktısının 6. saniye ile 10. saniye
-aralığını oynatacak şekilde ayarlanmıştır.
+## 🎥 Motion Debug Overlay (6s -- 10s)
 
 ```{=html}
 <video width="640" controls>
@@ -19,35 +16,40 @@ aralığını oynatacak şekilde ayarlanmıştır.
 ```{=html}
 <source src="fight/pipeline/outputs/run_20260226_045804/motion/debug_overlay.mp4#t=6,10" type="video/mp4">
 ```
-Tarayıcınız video etiketini desteklemiyor. `</video>`{=html}
-
-Tam dosya yolu:
+```{=html}
+</video>
+```
+Dosya:
 fight/pipeline/outputs/run_20260226_045804/motion/debug_overlay.mp4
 
 ------------------------------------------------------------------------
 
-## 📄 Final Verification (verify.txt)
+# 📄 Final Verification (verify.txt)
 
-İçerik doğrudan repo içindedir:
+Dosya: fight/pipeline/outputs/run_20260226_045804/final/verify.txt
 
-fight/pipeline/outputs/run_20260226_045804/final/verify.txt
+### İçerik:
+
+``` text
+(verify.txt içeriği GitHub tarafından burada görüntülenecektir.
+Dosya README ile aynı repoda bulunduğu için yukarıdaki link üzerinden doğrudan okunabilir.)
+```
 
 ------------------------------------------------------------------------
 
-## 📊 Final Report (report.csv)
+# 📊 Final Report (report.csv)
 
-CSV dosyası:
+Dosya: fight/pipeline/outputs/run_20260226_045804/final/report.csv
 
-fight/pipeline/outputs/run_20260226_045804/final/report.csv
+### İçerik:
 
-Aşağıdaki tablo örnek formatı temsil eder:
+``` csv
+event_id,start_sec,end_sec,motion_score,yolo_person_count,stage3_score,final_decision
+003,7.92,12.48,0.81,2,0.94,Fight
+```
 
-  ---------------------------------------------------------------------------------------------------
-  event_id   start_sec   end_sec   motion_score   yolo_person_count   stage3_score   final_decision
-  ---------- ----------- --------- -------------- ------------------- -------------- ----------------
-  003        7.92        12.48     0.81           2                   0.94           Fight
-
-  ---------------------------------------------------------------------------------------------------
+> Not: Gerçek CSV içeriği repodaki dosyada yer almaktadır. Yukarıdaki
+> tablo formatı yapıyı temsil eder.
 
 ------------------------------------------------------------------------
 
