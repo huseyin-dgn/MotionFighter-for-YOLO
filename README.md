@@ -1,12 +1,15 @@
 
 # MotionFighter-for-YOLO
 
-MotionFighter-for-YOLO, çok aşamalı (multi-stage) bir kavga tespit
-sistemidir.\
-Sistem; hareket analizi, ROI tabanlı YOLO kişi tespiti ve olay bazlı
-karar mekanizmasını birleştirerek hesaplama maliyetini düşürürken
-güvenilir sonuç üretmeyi hedefler.
+MotionFighter-for-YOLO, çok aşamalı (multi-stage) bir kavga tespit mimarisidir. Sistem; düşük seviyeli hareket (motion) analizi ile zaman tabanlı olay segmentasyonu üretir, ardından yalnızca anlamlı bölgelerde ROI tabanlı YOLO kişi tespiti gerçekleştirir ve son aşamada zamansal bağlamı modelleyen karar mekanizması ile nihai sınıflandırmayı yapar. Bu tasarım, full-frame sürekli inference yaklaşımına kıyasla hesaplama maliyetini azaltırken tutarlı ve analiz edilebilir sonuçlar üretmeyi amaçlar.
 
+Projede hafif ve hızlı çıkarım için YOLOv11n modeli kullanılmakta; ön filtreleme aşamasında özel tasarlanmış bir motion segmentasyon mekanizması, karar aşamasında ise olay bazlı değerlendirme yapan 3D CNN tabanlı zamansal sınıflandırma mimarisi yer almaktadır.
+
+Eğer .pt model dosyasına doğrudan erişilemiyorsa, modeli yeniden oluşturmak / paketlemek için:
+```text
+fight/tools/pack_pt_from_folder_v2.py
+```
+betiği kullanılabilir.
 ------------------------------------------------------------------------
 
 # 🧠 Sistem Mimarisi
@@ -120,11 +123,3 @@ fight/pipeline/outputs/run\_`<timestamp>`{=html}/
 -   Zamansal tutarlılığı korumak
 -   Analiz edilebilir log üretmek
 -   Modüler ve genişletilebilir yapı sunmak
-
-------------------------------------------------------------------------
-
-# 📌 Not
-
--   GitHub README içinde MP4 yerine GIF kullanılması önerilir.
--   Tüm karar mekanizması YAML konfigürasyonları ile kontrol edilebilir.
--   Sistem araştırma ve prototipleme amacıyla tasarlanmıştır.
