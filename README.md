@@ -9,7 +9,9 @@ Eğer .pt model dosyasına doğrudan erişilemiyorsa, modeli yeniden oluşturmak
 ```text
 fight/tools/pack_pt_from_folder_v2.py
 ```
+
 betiği kullanılabilir.
+
 ------------------------------------------------------------------------
 
 # 🧠 Sistem Mimarisi
