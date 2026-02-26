@@ -1,0 +1,11 @@
+event_id,video,clip_index,fight_prob
+event_001,crop.avi,0,0.00261688232421875
+event_002,crop.avi,0,0.0150909423828125
+event_002,crop.avi,1,0.053253173828125
+event_002,crop.avi,2,0.4365234375
+event_002,crop.avi,3,0.81396484375
+event_002,crop.avi,4,0.59619140625
+event_003,crop.avi,0,0.359619140625
+event_003,crop.avi,1,0.71484375
+event_004,crop.avi,0,0.150146484375
+event_004,crop.avi,1,0.163330078125

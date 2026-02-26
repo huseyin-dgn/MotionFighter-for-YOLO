@@ -1,0 +1,94 @@
+method: bg_subtractor
+
+threshold_open: 0.0015
+threshold_close: 0.0007
+min_interval_ms: 0
+
+preprocess:
+  resize_width: 640
+  grayscale: true
+  blur_ksize: 5
+
+bg_subtractor:
+  history: 250
+  var_threshold: 28
+  detect_shadows: false
+  morph_ksize: 1
+
+postprocess:
+  min_contour_area: 60
+
+temporal:
+  window_size: 5
+  min_pass: 2
+
+roi:
+  enabled: false
+  ignore_zones: []
+
+motion_filters:
+  max_blob_ratio: 1.0
+  mean_jump_thr: 999
+
+fight:
+  activity:
+    thr_score: 0.0015
+    min_area: 250
+    min_moving_pixels: 260
+
+  normalize:
+    E_ref: 0.0060
+    V_ref: 8.0
+    F_ref: 3.0
+    D_ref: 25.0
+    C_ref: 0.55
+
+  weights:
+    wE: 0.25
+    wV: 0.25
+    wF: 0.15
+    wD: 0.20
+    wC: 0.15
+    wJR: 0.0
+
+  candidate:
+    thr_fight_score: 0.65
+
+  voting:
+    window: 16
+    need: 10
+
+  jitter_reject:
+    score_small: 0.0009
+    delta_big: 150
+    cc_max: 2
+
+  walk_filter:
+    enabled: true
+    max_speed: 2.6
+
+event:
+  warmup_frames: 30
+  pre_padding: 4
+  prebuf_len_base: 45
+  cooldown_frames: 90
+  post_padding: 45
+
+debug:
+  enabled: true
+  save_every_n_pass: 1
+  out_dir: "C:/temp/motion_debug"
+
+motion:
+  gate_win: 16
+  prebuf: 11
+
+  adaptive_thr: true
+  adapt_frames: 60
+  k_on: 8.0
+  k_off: 4.0
+  thr_min: 0.000001
+
+  min_on_frames: 10
+  off_run: 20
+  max_event_len_frames: 300

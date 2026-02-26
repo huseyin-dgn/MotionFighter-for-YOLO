@@ -1,0 +1,14 @@
+video: "sample_2.mp4"
+
+motion:
+  out_dir: "motion/out_motion"
+  thr: 0.001
+  debug_video: true
+
+yolo:
+  config: "yolo/configs/yolo.yaml"
+  events_root: "outputs/events/sample_2"
+
+stage3:
+  config: "3D_CNN/configs/stage3.yaml"
+  weights: "3D_CNN/weights/best_ft_r3d18.pt"

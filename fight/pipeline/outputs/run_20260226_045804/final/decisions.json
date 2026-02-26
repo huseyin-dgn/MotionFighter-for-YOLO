@@ -1,0 +1,78 @@
+{
+  "event_001": {
+    "score": 0.00261688232421875,
+    "label": "non_fight",
+    "fight": false,
+    "reason": "score_low",
+    "why": "score(0.003) < thr_borderline(0.45)",
+    "thresholds": {
+      "thr_confident": 0.6,
+      "thr_borderline": 0.45,
+      "evidence_max_clip": 0.7,
+      "evidence_clip_thr": 0.55,
+      "evidence_ratio": 0.25
+    },
+    "evidence": {
+      "num_clips": 1,
+      "max_clip": 0.00261688232421875,
+      "ratio_ge_clip_thr": 0.0
+    }
+  },
+  "event_002": {
+    "score": 0.3830047607421875,
+    "label": "non_fight",
+    "fight": false,
+    "reason": "score_low",
+    "why": "score(0.383) < thr_borderline(0.45)",
+    "thresholds": {
+      "thr_confident": 0.6,
+      "thr_borderline": 0.45,
+      "evidence_max_clip": 0.7,
+      "evidence_clip_thr": 0.55,
+      "evidence_ratio": 0.25
+    },
+    "evidence": {
+      "num_clips": 5,
+      "max_clip": 0.81396484375,
+      "ratio_ge_clip_thr": 0.4
+    }
+  },
+  "event_003": {
+    "score": 0.5372314453125,
+    "label": "fight",
+    "fight": true,
+    "reason": "borderline_with_evidence",
+    "why": "borderline score(0.537) >= thr_borderline(0.45) AND (max_clip(0.715) >= 0.70 OR ratio(0.50) >= 0.25)",
+    "thresholds": {
+      "thr_confident": 0.6,
+      "thr_borderline": 0.45,
+      "evidence_max_clip": 0.7,
+      "evidence_clip_thr": 0.55,
+      "evidence_ratio": 0.25
+    },
+    "evidence": {
+      "num_clips": 2,
+      "max_clip": 0.71484375,
+      "ratio_ge_clip_thr": 0.5
+    }
+  },
+  "event_004": {
+    "score": 0.15673828125,
+    "label": "non_fight",
+    "fight": false,
+    "reason": "score_low",
+    "why": "score(0.157) < thr_borderline(0.45)",
+    "thresholds": {
+      "thr_confident": 0.6,
+      "thr_borderline": 0.45,
+      "evidence_max_clip": 0.7,
+      "evidence_clip_thr": 0.55,
+      "evidence_ratio": 0.25
+    },
+    "evidence": {
+      "num_clips": 2,
+      "max_clip": 0.163330078125,
+      "ratio_ge_clip_thr": 0.0
+    }
+  }
+}

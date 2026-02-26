@@ -1,0 +1,3 @@
+Eğer motion ayarlarını denemek isterseniz:
+      cd figth\motion
+      python run_motion.py ..\sample_2.mp4 --out out_motion --debug-video

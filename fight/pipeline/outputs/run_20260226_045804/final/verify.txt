@@ -1,0 +1,4 @@
+FIGHT DETECTED 
+Fight events:
+- event_003  t=0.0-0.0s  score=0.537231  crop=C:\Users\hdgn5\OneDrive\Masaüstü\figth\outputs\events\sample_2\event_003\crop.avi
+  why: borderline score(0.537) >= thr_borderline(0.45) AND (max_clip(0.715) >= 0.70 OR ratio(0.50) >= 0.25)

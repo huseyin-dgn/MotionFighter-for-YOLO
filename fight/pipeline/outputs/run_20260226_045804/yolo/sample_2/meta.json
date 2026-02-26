@@ -1,0 +1,74 @@
+{
+  "video": "sample_2.mp4",
+  "motion_config": "motion/configs/motion.yaml",
+  "yolo_config": "yolo/configs/yolo.yaml",
+  "fps_est": 30.007374317783192,
+  "segments": [
+    {
+      "seg_id": 1,
+      "start_f": 0,
+      "end_f": 45,
+      "peak": 1.0,
+      "accepted": 1,
+      "probe_seen": 18,
+      "probe_2p": 17
+    },
+    {
+      "seg_id": 2,
+      "start_f": 76,
+      "end_f": 338,
+      "peak": 0.005979135965821627,
+      "accepted": 1,
+      "probe_seen": 18,
+      "probe_2p": 13
+    },
+    {
+      "seg_id": 3,
+      "start_f": 642,
+      "end_f": 722,
+      "peak": 0.0037529788701978054,
+      "accepted": 1,
+      "probe_seen": 18,
+      "probe_2p": 18
+    },
+    {
+      "seg_id": 4,
+      "start_f": 842,
+      "end_f": 902,
+      "peak": 0.004254593935665302,
+      "accepted": 1,
+      "probe_seen": 18,
+      "probe_2p": 17
+    }
+  ],
+  "merged_events": [
+    {
+      "event_id": 1,
+      "start_f": 0,
+      "end_f": 56,
+      "t0": 0.0,
+      "t1": 1.866207932988421
+    },
+    {
+      "event_id": 2,
+      "start_f": 68,
+      "end_f": 349,
+      "t0": 2.266109632914511,
+      "t1": 11.630474439517123
+    },
+    {
+      "event_id": 3,
+      "start_f": 634,
+      "end_f": 733,
+      "t0": 21.128139812761766,
+      "t1": 24.42732883715201
+    },
+    {
+      "event_id": 4,
+      "start_f": 834,
+      "end_f": 902,
+      "t0": 27.79316814486327,
+      "t1": 30.05927777777778
+    }
+  ]
+}
