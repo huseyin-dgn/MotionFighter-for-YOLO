@@ -75,13 +75,42 @@ Overlay](fight/pipeline/outputs/run_20260226_045804/motion/debug_overlay_6s_10s.
 
 ------------------------------------------------------------------------
 
-## 🔎 Karar Mantığı (event_003)
+## 🔎 Karar Mekanizması (event_003)
 
-    score >= thr_borderline
-    VE
-    ( max_clip >= 0.70  VEYA  ratio >= 0.25 )
+Her olay (event) için sistem önce olay bazlı ortalama skor (`score`) hesaplar.  
+Ardından iki aşamalı bir karar mekanizması uygulanır:
 
-event_003 bu koşulu sağladığı için fight olarak işaretlenmiştir.
+
+### 1️⃣ Eşik Kontrolü (Borderline Threshold)
+
+Olayın kavga adayı olarak değerlendirilebilmesi için ortalama skorun belirlenen eşik değeri aşması gerekir:
+
+```text
+score ≥ thr_borderline
+```
+
+### 2️⃣ Güçlü Zamansal Kanıt Kontrolü
+
+Eşik koşulu sağlandıktan sonra, olayın gerçekten kavga olarak etiketlenebilmesi için aşağıdaki koşullardan en az biri sağlanmalıdır:
+```text
+max_clip ≥ 0.70
+VEYA
+ratio ≥ 0.25
+```
+
+Tanımlar:
+
+- max_clip → Olay içerisindeki en yüksek tekil clip skorudur.
+
+- ratio → Pozitif (yüksek skorlu) clip’lerin toplam clip sayısına oranıdır.
+
+#### ✅ event_003 İçin Sonuç
+
+* Ortalama skor eşik değerinin üzerindedir.
+
+- En az bir clip güçlü kanıt üretmiştir (max_clip ≥ 0.70).
+
+**Bu nedenle event_003, nihai karar mekanizması tarafından fight olarak sınıflandırılmıştır.**
 
 ------------------------------------------------------------------------
 
