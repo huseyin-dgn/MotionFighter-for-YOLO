@@ -1,237 +1,228 @@
-# Motion-Fighter-for-YOLO
 
-Hareket tabanlı olay segmentasyonu ve YOLO tabanlı kişi etkileşim analizi kullanan çok aşamalı kavga tespit hattı.
+# MotionFighter-for-YOLO
 
----
+MotionFighter-for-YOLO, çok aşamalı (multi-stage) bir kavga tespit mimarisidir. Sistem; düşük seviyeli hareket (motion) analizi ile zaman tabanlı olay segmentasyonu üretir, ardından yalnızca anlamlı bölgelerde ROI tabanlı YOLO kişi tespiti gerçekleştirir ve son aşamada zamansal bağlamı modelleyen karar mekanizması ile nihai sınıflandırmayı yapar. Bu tasarım, full-frame sürekli inference yaklaşımına kıyasla hesaplama maliyetini azaltırken tutarlı ve analiz edilebilir sonuçlar üretmeyi amaçlar.
 
-## 📁 Proje Dosya Yapısı
+Projede hafif ve hızlı çıkarım için YOLOv11n modeli kullanılmakta; ön filtreleme aşamasında özel tasarlanmış bir motion segmentasyon mekanizması, karar aşamasında ise olay bazlı değerlendirme yapan 3D CNN tabanlı zamansal sınıflandırma mimarisi yer almaktadır.
 
+Eğer .pt model dosyasına doğrudan erişilemiyorsa, modeli yeniden oluşturmak / paketlemek için:
 ```text
-motion_detection/
-│
-├── yolo11n.pt
-│
-├── motion/
-│   ├── README.md
-│   ├── RUN.txt
-│   │
-│   ├── configs/
-│   │   ├── motion.yaml
-│   │   └── motion_yaml.txt
-│   │
-│   └── src/
-│       ├── main.py
-│       ├── core/
-│       │   └── config.py
-│       │
-│       ├── ingest/
-│       │   └── cam_reader.py
-│       │
-│       ├── motion/
-│       │   ├── bg_subtractor.py
-│       │   ├── frame_diff.py
-│       │   ├── gate.py
-│       │   └── roi.py
-│       │
-│       ├── scripts/
-│       │   └── run_motion.py
-│       │
-│       ├── service/
-│       │   ├── motion_service.py
-│       │   └── segmenter.py
-│       │
-│       └── utils/
-│           ├── image_ops.py
-│           └── logger.py
-│
-├── outputs/
-│   ├── motion_debug_txt/
-│   │   ├── 01/
-│   │   ├── 02/
-│   │   ├── 03/
-│   │   ├── 04/
-│   │   ├── 05/
-│   │   ├── 06/
-│   │   └── 07/
-│   │
-│   └── yolo_debug/
-│       ├── NV_11/
-│       │   └── event_001/
-│       │       └── roi_log.csv
-│       │
-│       ├── sample_2/
-│       │   └── event_002/
-│       │       ├── crop.gif
-│       │       ├── crop.mp4
-│       │       └── roi_log.csv
-│       │
-│       ├── V_102/
-│       │   └── event_001/
-│       │       └── roi_log.csv
-│       │
-│       └── V_115/
-│           └── event_001/
-│               └── roi_log.csv
-│
-└── yolo/
-    ├── README.md
-    ├── requirements.txt
-    ├── configs/
-    │   └── yolo.yaml
-    │
-    └── src/
-        └── stage2/
-            ├── run_export_events.py
-            ├── run_yolo_on_events.py
-            └── stage2_core.py
+fight/tools/pack_pt_from_folder_v2.py
 ```
 
----
+betiği kullanılabilir.
 
-## 🎥 Stage-2 ROI Çıktısı (Önizleme)
+------------------------------------------------------------------------
 
-**Dosya:**
-- GIF: `motion_detection/outputs/yolo_debug/sample_2/event_002/crop.gif`
-- MP4: `motion_detection/outputs/yolo_debug/sample_2/event_002/crop.mp4`
+# 🧠 Sistem Mimarisi
 
-### 🔹 GIF Önizleme
+Pipeline üç ana katmandan oluşur:
 
-![Stage-2 ROI Crop Preview](motion_detection/outputs/yolo_debug/sample_2/event_002/crop.gif)
+## 1️⃣ Motion Stage (Hareket Analizi)
 
-### 🔹 MP4 (opsiyonel / bazı ortamlarda görünmeyebilir)
+-   Background Subtraction / Frame Differencing
+-   Motion score hesaplama
+-   Zaman tabanlı event segmentasyonu
+-   Gereksiz frame'lerin elenmesi
 
-<video src="motion_detection/outputs/yolo_debug/sample_2/event_002/crop.mp4" width="400" controls>
-Tarayıcınız video etiketini desteklemiyor.
-</video>
+Amaç: YOLO'nun tüm video boyunca çalışmasını engelleyerek performansı
+artırmak.
 
-> Eğer MP4 burada görünmezse, üstteki dosya yoluna tıklayıp GitHub üzerinden açabilirsiniz.
+------------------------------------------------------------------------
 
----
+## 2️⃣ YOLO Stage (ROI Tabanlı Kişi Tespiti)
 
-## 📄 ROI Frame Log (CSV)
+-   Motion ile tetiklenen segmentlerde çalışır
+-   Full-frame yerine yalnızca ROI üzerinde inference yapılır
+-   Interaction-based ROI seçimi uygulanır
+-   Frame bazlı ROI log tutulur
 
-**Dosya:** `motion_detection/outputs/yolo_debug/sample_2/event_002/roi_log.csv`
+Amaç: Hesaplama yükünü azaltmak ve anlamlı bölgeleri analiz etmek.
 
-[📥 CSV’yi indir](motion_detection/outputs/yolo_debug/sample_2/event_002/roi_log.csv)
+------------------------------------------------------------------------
 
-<div style="max-height:320px; overflow:auto; border:1px solid #d0d7de; border-radius:8px; padding:10px;">
+## 3️⃣ Final Stage (Olay Bazlı Karar)
 
-<table>
-<thead>
-<tr>
-<th>proc_i</th>
-<th>ts</th>
-<th>det_count</th>
-<th>track_count</th>
-<th>roi_x1</th>
-<th>roi_y1</th>
-<th>roi_x2</th>
-<th>roi_y2</th>
-<th>roi_source</th>
-<th>roi_score</th>
-<th>roi_iou_prev</th>
-<th>pair_idx</th>
-<th>jump_accepted</th>
-</tr>
-</thead>
-<tbody>
-<tr><td>238</td><td>7.926167</td><td>2</td><td>2</td><td>325</td><td>94</td><td>430</td><td>226</td><td>pair</td><td>0.8305</td><td>0.0000</td><td>(0, 1)</td><td>0</td></tr>
-<tr><td>239</td><td>7.959500</td><td>2</td><td>2</td><td>323</td><td>94</td><td>429</td><td>226</td><td>pair</td><td>0.8212</td><td>0.9273</td><td>(0, 1)</td><td>0</td></tr>
-<tr><td>240</td><td>7.992833</td><td>2</td><td>2</td><td>321</td><td>94</td><td>428</td><td>226</td><td>pair</td><td>0.8162</td><td>0.9129</td><td>(0, 1)</td><td>0</td></tr>
-<tr><td>241</td><td>8.026167</td><td>2</td><td>2</td><td>319</td><td>94</td><td>427</td><td>227</td><td>pair</td><td>0.8144</td><td>0.9085</td><td>(0, 1)</td><td>0</td></tr>
-<tr><td>242</td><td>8.059500</td><td>2</td><td>2</td><td>318</td><td>94</td><td>426</td><td>227</td><td>pair</td><td>0.8142</td><td>0.9239</td><td>(0, 1)</td><td>0</td></tr>
-<tr><td>243</td><td>8.092833</td><td>2</td><td>2</td><td>317</td><td>93</td><td>425</td><td>227</td><td>pair</td><td>0.8142</td><td>0.9323</td><td>(0, 1)</td><td>0</td></tr>
-<tr><td>244</td><td>8.126167</td><td>2</td><td>2</td><td>316</td><td>92</td><td>424</td><td>228</td><td>pair</td><td>0.8148</td><td>0.8984</td><td>(0, 1)</td><td>0</td></tr>
-<tr><td>245</td><td>8.159500</td><td>2</td><td>2</td><td>316</td><td>92</td><td>423</td><td>229</td><td>pair</td><td>0.8301</td><td>0.9364</td><td>(0, 1)</td><td>0</td></tr>
-<tr><td>246</td><td>8.192833</td><td>2</td><td>2</td><td>316</td><td>92</td><td>422</td><td>230</td><td>pair</td><td>0.8310</td><td>0.9451</td><td>(0, 1)</td><td>0</td></tr>
-<tr><td>247</td><td>8.226167</td><td>2</td><td>2</td><td>315</td><td>93</td><td>421</td><td>231</td><td>pair</td><td>0.8261</td><td>0.8975</td><td>(0, 1)</td><td>0</td></tr>
-<tr><td>248</td><td>8.259500</td><td>2</td><td>2</td><td>314</td><td>94</td><td>419</td><td>232</td><td>pair</td><td>0.8304</td><td>0.8906</td><td>(0, 1)</td><td>0</td></tr>
-<tr><td>249</td><td>8.292833</td><td>2</td><td>2</td><td>314</td><td>95</td><td>417</td><td>233</td><td>pair</td><td>0.8425</td><td>0.8808</td><td>(0, 1)</td><td>0</td></tr>
-<tr><td>250</td><td>8.326167</td><td>3</td><td>3</td><td>314</td><td>96</td><td>415</td><td>234</td><td>pair</td><td>0.9245</td><td>0.8794</td><td>(1, 2)</td><td>0</td></tr>
-<tr><td>251</td><td>8.359500</td><td>3</td><td>3</td><td>313</td><td>97</td><td>413</td><td>235</td><td>pair</td><td>0.9285</td><td>0.8818</td><td>(1, 2)</td><td>0</td></tr>
-<tr><td>252</td><td>8.392822</td><td>2</td><td>3</td><td>312</td><td>98</td><td>410</td><td>234</td><td>pair</td><td>0.9098</td><td>0.8699</td><td>(0, 1)</td><td>0</td></tr>
-<tr><td>253</td><td>8.426156</td><td>2</td><td>3</td><td>314</td><td>98</td><td>407</td><td>234</td><td>pair</td><td>0.8863</td><td>0.8610</td><td>(0, 1)</td><td>0</td></tr>
-<tr><td>254</td><td>8.459489</td><td>1</td><td>3</td><td>314</td><td>98</td><td>407</td><td>234</td><td>hold</td><td>0.0000</td><td>1.0000</td><td></td><td>0</td></tr>
-<tr><td>255</td><td>8.492822</td><td>1</td><td>3</td><td>314</td><td>98</td><td>407</td><td>234</td><td>hold</td><td>0.0000</td><td>1.0000</td><td></td><td>0</td></tr>
-<tr><td>256</td><td>8.526156</td><td>1</td><td>3</td><td>314</td><td>98</td><td>407</td><td>234</td><td>hold</td><td>0.0000</td><td>1.0000</td><td></td><td>0</td></tr>
-<tr><td>257</td><td>8.559489</td><td>1</td><td>3</td><td>314</td><td>98</td><td>407</td><td>234</td><td>hold</td><td>0.0000</td><td>1.0000</td><td></td><td>0</td></tr>
-<tr><td>258</td><td>8.592822</td><td>1</td><td>3</td><td>314</td><td>98</td><td>407</td><td>234</td><td>hold</td><td>0.0000</td><td>1.0000</td><td></td><td>0</td></tr>
-<tr><td>259</td><td>8.626156</td><td>1</td><td>3</td><td>314</td><td>98</td><td>407</td><td>234</td><td>hold</td><td>0.0000</td><td>1.0000</td><td></td><td>0</td></tr>
-</tbody>
-</table>
+-   Event-level skor hesaplama
+-   Borderline eşik kontrolü
+-   max_clip ve ratio analizi
+-   Nihai fight / non_fight kararı
+-   CSV / TXT rapor üretimi
 
-</div>
+------------------------------------------------------------------------
 
-### Açıklama
+# 🎞 Motion Debug Overlay (6--10 saniye)
 
-Bu CSV dosyası event içindeki her frame için ROI seçim sürecini kaydeder.
+Aşağıdaki GIF, motion mask + ROI davranışını 6--10 saniye aralığında
+göstermektedir:
 
-Kolon açıklamaları:
+![Motion Debug
+Overlay](fight/pipeline/outputs/run_20260226_045804/motion/debug_overlay_6s_10s.gif)
 
-- frame_idx → Event içindeki frame numarası
-- roi_x1, roi_y1, roi_x2, roi_y2 → ROI koordinatları (xyxy format)
-- roi_source → ROI seçim yöntemi
-  - pair → interaction scoring ile seçildi
-  - top2 → en büyük iki box fallback
-  - single → tek kişi fallback
-- pair_score → proximity + IoU tabanlı skor
-- roi_iou_prev → Önceki frame ROI ile IoU (stabilite metriği)
-- jump_accepted → ROI zıplamasının kabul edilip edilmediği
+------------------------------------------------------------------------
 
-Bu log ROI davranışını, stabiliteyi ve seçim doğruluğunu analiz etmek için kullanılır.
+# 📊 Nihai Sonuç Özeti
 
----
+## ✅ Karar: KAVGA TESPİT EDİLDİ
+```text
+  Olay        Skor       Etiket      max_clip   oran   clip_sayısı
+  ----------- ---------- ----------- ---------- ------ -------------
+  event_001   0.002617   non_fight   0.002617   0.0    1
+  event_002   0.383005   non_fight   0.813965   0.4    5
+  event_003   0.537231   fight       0.714844   0.5    2
+  event_004   0.156738   non_fight   0.163330   0.0    2
+```
 
-## 🎬 Full Pipeline Output (Run: run_20260226_045804)
+------------------------------------------------------------------------
 
-### 🎥 Motion Debug Overlay (6s–10s)
+## 🔎 Karar Mekanizması (event_003)
 
-<video src="fight/pipeline/outputs/run_20260226_045804/motion/debug_overlay.mp4#t=6,10" width="640" controls>
-Tarayıcınız video etiketini desteklemiyor.
-</video>
+Her olay (event) için sistem önce olay bazlı ortalama skor (`score`) hesaplar.  
+Ardından iki aşamalı bir karar mekanizması uygulanır:
 
-> Eğer video README içinde görünmezse, dosyaya buradan ulaş:  
-`fight/pipeline/outputs/run_20260226_045804/motion/debug_overlay.mp4`
 
----
+### 1️⃣ Eşik Kontrolü (Borderline Threshold)
 
-### 📄 Final Verification (verify.txt)
+Olayın kavga adayı olarak değerlendirilebilmesi için ortalama skorun belirlenen eşik değeri aşması gerekir:
 
-Dosya: `fight/pipeline/outputs/run_20260226_045804/final/verify.txt`
+```text
+score ≥ thr_borderline
+```
 
-> Bu bölüm GitHub Actions tarafından otomatik doldurulacak. (Elle kopyalama yok.)
+### 2️⃣ Güçlü Zamansal Kanıt Kontrolü
 
-<!-- AUTO:VERIFY_TXT:START -->
-<!-- AUTO:VERIFY_TXT:END -->
+Eşik koşulu sağlandıktan sonra, olayın gerçekten kavga olarak etiketlenebilmesi için aşağıdaki koşullardan en az biri sağlanmalıdır:
+```text
+max_clip ≥ 0.70
+VEYA
+ratio ≥ 0.25
+```
 
----
+Tanımlar:
 
-### 📊 Final Report (report.csv)
+- max_clip → Olay içerisindeki en yüksek tekil clip skorudur.
 
-Dosya: `fight/pipeline/outputs/run_20260226_045804/final/report.csv`
+- ratio → Pozitif (yüksek skorlu) clip’lerin toplam clip sayısına oranıdır.
 
-> Bu bölüm GitHub Actions tarafından otomatik doldurulacak. (Elle kopyalama yok.)
+#### ✅ event_003 İçin Sonuç
 
-<!-- AUTO:REPORT_CSV:START -->
-<!-- AUTO:REPORT_CSV:END -->
+* Ortalama skor eşik değerinin üzerindedir.
 
----
+- En az bir clip güçlü kanıt üretmiştir (max_clip ≥ 0.70).
 
-# Pipeline Overview
+**Bu nedenle event_003, nihai karar mekanizması tarafından fight olarak sınıflandırılmıştır.**
 
-1. Motion Detection (BG Subtractor)
-2. Temporal Event Segmentation
-3. YOLO Person Detection
-4. Interaction-Based ROI Selection
-5. ROI Stabilization
-6. Event Crop Export
-7. Frame-Level ROI Logging
+------------------------------------------------------------------------
 
----
+# 🚀 Çalıştırma
 
-# Notes
+## Stage-2 (Motion + YOLO)
 
-- Motion stage gereksiz frame’leri eler.
-- YOLO sadece event içindeki framelerde çalışır.
-- ROI selection interaction tabanlıdır.
-- Sistem research prototype seviyesindedir.
+``` powershell
+python -m yolo.src.stage2.run_export_events `
+  "sample_2.mp4" `
+  -c "motion/configs/motion.yaml" `
+  --yolo-config "yolo/configs/yolo.yaml"
+```
+
+## Full Pipeline
+
+``` powershell
+python -m pipeline.run_full --config pipeline/configs/pipeline.yaml --skip-motion --skip-yolo --visualize
+```
+
+------------------------------------------------------------------------
+
+# 📁 Çıktı Yapısı
+
+fight/pipeline/outputs/run\_`<timestamp>`{=html}/
+
+-   motion/
+-   yolo/
+-   stage3/
+-   final/
+    -   report.csv
+    -   verify.txt
+    -   summary.json
+    -   annotated videos
+
+------------------------------------------------------------------------
+
+# 📁 Bütün Klasör Yapısı Aşağıdaki Gibidir
+
+```text
+C:.
+│   README.md
+│   .gitignore
+│
+└── fight
+    │   sample_2.mp4
+    │   yolo11n.pt
+    │
+    ├── 3D_CNN
+    │   ├── configs
+    │   │   └── stage3.yaml
+    │   └── src
+    │       ├── aggregate.py
+    │       ├── clip_sampler.py
+    │       ├── infer.py
+    │       ├── model_loader.py
+    │       └── transforms.py
+    │
+    ├── motion
+    │   ├── run_motion_fixed.py
+    │   ├── configs
+    │   │   └── motion.yaml
+    │   └── src
+    │       ├── main.py
+    │       ├── core
+    │       │   └── config.py
+    │       ├── ingest
+    │       │   └── cam_reader.py
+    │       ├── motion
+    │       │   ├── bg_subtractor.py
+    │       │   ├── frame_diff.py
+    │       │   ├── gate.py
+    │       │   └── roi.py
+    │       ├── service
+    │       │   ├── motion_service.py
+    │       │   └── segmenter.py
+    │       └── utils
+    │           ├── image_ops.py
+    │           └── logger.py
+    │
+    ├── pipeline
+    │   ├── run_full.py
+    │   ├── visualize_event.py
+    │   └── configs
+    │       └── pipeline.yaml
+    │
+    ├── shared
+    │   ├── datamodel.py
+    │   ├── io.py
+    │   └── video.py
+    │
+    ├── tools
+    │   └── pack_pt_from_folder_v2.py
+    │
+    └── yolo
+        ├── requirements.txt
+        ├── configs
+        │   └── yolo.yaml
+        └── src
+            └── stage2
+                ├── run_export_events.py
+                ├── run_yolo_on_events.py
+                ├── stage2_core.py
+                └── utils_metrics.py
+```
+
+------------------------------------------------------------------------
+
+# 🎯 Tasarım Hedefleri
+
+-   Full-frame inference'dan kaçınmak
+-   Hesaplama maliyetini düşürmek
+-   Zamansal tutarlılığı korumak
+-   Analiz edilebilir log üretmek
+-   Modüler ve genişletilebilir yapı sunmak
