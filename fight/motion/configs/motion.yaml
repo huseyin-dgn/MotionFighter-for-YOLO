@@ -1,7 +1,7 @@
 method: bg_subtractor
 
-threshold_open: 0.0015
-threshold_close: 0.0007
+threshold_open: 0.0080
+threshold_close: 0.0040
 min_interval_ms: 0
 
 preprocess:
@@ -10,36 +10,36 @@ preprocess:
   blur_ksize: 5
 
 bg_subtractor:
-  history: 250
-  var_threshold: 28
+  history: 600
+  var_threshold: 60
   detect_shadows: false
-  morph_ksize: 1
+  morph_ksize: 5
 
 postprocess:
-  min_contour_area: 60
+  min_contour_area: 120
 
 temporal:
-  window_size: 5
-  min_pass: 2
+  window_size: 12
+  min_pass: 5
 
 roi:
   enabled: false
   ignore_zones: []
 
 motion_filters:
-  max_blob_ratio: 1.0
+  max_blob_ratio: 0.65
   mean_jump_thr: 999
 
 fight:
   activity:
-    thr_score: 0.0015
-    min_area: 250
-    min_moving_pixels: 260
+    thr_score: 0.0080
+    min_area: 450
+    min_moving_pixels: 600
 
   normalize:
-    E_ref: 0.0060
-    V_ref: 8.0
-    F_ref: 3.0
+    E_ref: 0.0200
+    V_ref: 10.0
+    F_ref: 4.0
     D_ref: 25.0
     C_ref: 0.55
 
@@ -59,7 +59,7 @@ fight:
     need: 10
 
   jitter_reject:
-    score_small: 0.0009
+    score_small: 0.0030
     delta_big: 150
     cc_max: 2
 
@@ -68,11 +68,11 @@ fight:
     max_speed: 2.6
 
 event:
-  warmup_frames: 30
-  pre_padding: 4
-  prebuf_len_base: 45
-  cooldown_frames: 90
-  post_padding: 45
+  warmup_frames: 60
+  pre_padding: 6
+  prebuf_len_base: 60
+  cooldown_frames: 60
+  post_padding: 60
 
 debug:
   enabled: true
@@ -84,11 +84,11 @@ motion:
   prebuf: 11
 
   adaptive_thr: true
-  adapt_frames: 60
+  adapt_frames: 120
   k_on: 8.0
-  k_off: 4.0
-  thr_min: 0.000001
+  k_off: 5.0
+  thr_min: 0.0020
 
   min_on_frames: 10
-  off_run: 20
-  max_event_len_frames: 300
+  off_run: 10
+  max_event_len_frames: 240

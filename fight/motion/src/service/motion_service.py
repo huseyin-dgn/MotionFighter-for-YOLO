@@ -9,14 +9,14 @@ from typing import Optional
 import cv2
 import numpy as np
 
-from src.core.config import MotionConfig
-from src.ingest.cam_reader import frame_generator
-from src.motion.bg_subtractor import BGSubtractor
-from src.motion.frame_diff import FrameDiffer
-from src.motion.gate import MotionGate
-from src.motion.roi import apply_mask, build_ignore_mask
-from src.utils.image_ops import blur, resize_keep_aspect, to_gray
-from src.utils.logger import setup_logger
+from fight.motion.src.core.config import MotionConfig
+from fight.motion.src.ingest.cam_reader import frame_generator
+from fight.motion.src.motion.bg_subtractor import BGSubtractor
+from fight.motion.src.motion.frame_diff import FrameDiffer
+from fight.motion.src.motion.gate import MotionGate
+from fight.motion.src.motion.roi import apply_mask, build_ignore_mask
+from fight.motion.src.utils.image_ops import blur, resize_keep_aspect, to_gray
+from fight.motion.src.utils.logger import setup_logger
 
 
 @dataclass
