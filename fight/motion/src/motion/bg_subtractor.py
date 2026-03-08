@@ -49,6 +49,7 @@ class BGSubtractor:
                 k += 1
             kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k, k))
             fg = cv2.morphologyEx(fg, cv2.MORPH_OPEN, kernel, iterations=1)
+            fg = cv2.morphologyEx(fg, cv2.MORPH_CLOSE, kernel, iterations=1)    
 
         found = cv2.findContours(fg, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         contours = found[0] if len(found) == 2 else found[1]
@@ -89,13 +90,18 @@ class BGSubtractor:
 
         if denom <= 0:
             score = 0.0
+            moving = 0
         else:
             if allowed is None:
                 moving = int(np.sum(fg > 0))
             else:
                 moving = int(np.sum((fg > 0)[allowed]))
-            score = float(moving) / float(denom)
 
+            moving_ratio = float(moving) / float(denom)
+            area_ratio = float(largest_area) / float(denom)
+
+            score = 0.7 * moving_ratio + 0.3 * area_ratio
+            
         return BGSubResult(
             score=score,
             fgmask=fg,

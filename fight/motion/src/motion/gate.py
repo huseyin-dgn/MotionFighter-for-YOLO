@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from collections import deque
 from dataclasses import dataclass
 from typing import Deque
@@ -104,11 +105,11 @@ class MotionGate:
         reason = "HOLD"
 
         if not self.motion_on:
-            if hist_sum >= self.min_pass:
+            if current and hist_sum >= self.min_pass:
                 self.motion_on = True
                 self._on_age = 0
                 self._off_streak = 0
-                reason = "OPEN(hist_sum>=min_pass)"
+                reason = "OPEN(current&&hist_sum>=min_pass)"
         else:
             self._on_age += 1
 
@@ -126,12 +127,14 @@ class MotionGate:
                     self.motion_on = False
                     self._on_age = 0
                     self._off_streak = 0
+                    self.history.clear()
                     reason = "CLOSE(off_streak>=off_run)"
             else:
                 if can_close and hist_sum == 0:
                     self.motion_on = False
                     self._on_age = 0
                     self._off_streak = 0
+                    self.history.clear()
                     reason = "CLOSE(hist_sum==0)"
 
         return GateDecision(

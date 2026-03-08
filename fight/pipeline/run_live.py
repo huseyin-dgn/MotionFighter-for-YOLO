@@ -180,10 +180,68 @@ class Stage3Adapter:
 def draw_text(img, text, x, y):
     cv2.putText(img, text, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2, cv2.LINE_AA)
 
+def clamp(v, lo, hi):
+    return max(lo, min(hi, v))
+
+
+def make_union_crop(frame_bgr: np.ndarray, persons, pad_ratio: float = 0.15, out_size: int = 320):
+    h, w = frame_bgr.shape[:2]
+
+    if len(persons) < 2:
+        return cv2.resize(frame_bgr, (out_size, out_size), interpolation=cv2.INTER_LINEAR)
+
+    boxes = [box for _, box in persons[:2]]
+    x1 = min(b[0] for b in boxes)
+    y1 = min(b[1] for b in boxes)
+    x2 = max(b[2] for b in boxes)
+    y2 = max(b[3] for b in boxes)
+
+    bw = x2 - x1
+    bh = y2 - y1
+
+    pad_x = int(bw * pad_ratio)
+    pad_y = int(bh * pad_ratio)
+
+    x1 = clamp(x1 - pad_x, 0, w - 1)
+    y1 = clamp(y1 - pad_y, 0, h - 1)
+    x2 = clamp(x2 + pad_x, 0, w - 1)
+    y2 = clamp(y2 + pad_y, 0, h - 1)
+
+    if x2 <= x1 or y2 <= y1:
+        return cv2.resize(frame_bgr, (out_size, out_size), interpolation=cv2.INTER_LINEAR)
+
+    crop = frame_bgr[y1:y2, x1:x2]
+    crop = cv2.resize(crop, (out_size, out_size), interpolation=cv2.INTER_LINEAR)
+    return crop
+
+def save_clip_mp4(frames_bgr, out_path: str, fps: float = 16.0):
+    if not frames_bgr:
+        return
+
+    h, w = frames_bgr[0].shape[:2]
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    writer = cv2.VideoWriter(out_path, fourcc, fps, (w, h))
+
+    try:
+        for f in frames_bgr:
+            writer.write(f)
+    finally:
+        writer.release()
+
+
+def _open_source(source: str):
+    if source.isdigit():
+        cap = cv2.VideoCapture(int(source), cv2.CAP_DSHOW)
+    else:
+        cap = cv2.VideoCapture(source, cv2.CAP_FFMPEG)
+
+    cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+    return cap
+
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--cam", type=int, default=0)
+    ap.add_argument("--source", type=str, default="0")
     ap.add_argument("--motion-config", type=str, default="fight/motion/configs/motion.yaml")
     ap.add_argument("--yolo-config", type=str, default="fight/yolo/configs/yolo.yaml")
     ap.add_argument("--yolo-weights", type=str, default="fight/yolo11n.pt")
@@ -195,16 +253,19 @@ def main():
     ap.add_argument("--min-2p-frames", type=int, default=6)
     ap.add_argument("--fight-thr", type=float, default=0.6)
     ap.add_argument("--show", action="store_true", default=True)
+    ap.add_argument("--reconnect-sec", type=float, default=1.0)
     args = ap.parse_args()
 
-    cap = cv2.VideoCapture(args.cam, cv2.CAP_DSHOW)
-    cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+    cap = _open_source(args.source)
     if not cap.isOpened():
-        raise RuntimeError(f"Cannot open camera: {args.cam}")
+        raise RuntimeError(f"Cannot open source: {args.source}")
 
     motion = MotionAdapter(args.motion_config)
     yolo = YoloAdapter(args.yolo_config, args.yolo_weights)
     stage3 = Stage3Adapter(args.stage3_config) if args.use_stage3 else None
+    clip_debug_dir = Path("fight/clip_debug")
+    clip_debug_dir.mkdir(parents=True, exist_ok=True)
+    clip_save_idx = 0
 
     clip = []
     yolo_ctr = 0
@@ -214,20 +275,31 @@ def main():
     last_fight_prob = 0.0
 
     fight_state = False
-    fight_on_need = 3
-    fight_off_need = 6
+    fight_on_need = 2
+    fight_off_need = 4
     fight_on_ctr = 0
     fight_off_ctr = 0
 
     last_t = time.time()
     fps = 0.0
+    debug_ctr = 0
 
     try:
         while True:
             ret, frame = cap.read()
             if not ret:
-                print("cap.read() failed")
-                break
+                if Path(args.source).suffix.lower() in [".mp4", ".avi", ".mov", ".mkv"]:
+                    print("video ended.")
+                    break
+
+                print("cap.read() failed, reconnecting...")
+                try:
+                    cap.release()
+                except Exception:
+                    pass
+                time.sleep(args.reconnect_sec)
+                cap = _open_source(args.source)
+                continue
 
             now = time.time()
             dt = now - last_t
@@ -236,32 +308,55 @@ def main():
             last_t = now
 
             score, active, frame_resized, motion_vis = motion.step(now, frame)
-
             view = frame if frame_resized is None else frame_resized.copy()
 
             yolo_ctr += 1
-            persons = last_persons
+            yolo_ran = False
+            persons = []
+
             if active and (yolo_ctr % max(1, args.yolo_stride) == 0):
                 dets = yolo.detect_persons(view)
                 persons = [(c, box) for (c, box) in dets if c >= args.person_conf]
                 last_persons = persons
+                yolo_ran = True
+            elif active:
+                persons = last_persons
+            else:
+                last_persons = []
+                persons = []
+
+            conf_list = [round(c, 2) for c, _ in persons]
 
             for c, (x1, y1, x2, y2) in persons:
                 cv2.rectangle(view, (x1, y1), (x2, y2), (255, 0, 0), 2)
                 cv2.putText(view, f"{c:.2f}", (x1, max(0, y1 - 5)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
+            if len(persons) >= 2:
+                boxes = [box for _, box in persons[:2]]
+                ux1 = min(b[0] for b in boxes)
+                uy1 = min(b[1] for b in boxes)
+                ux2 = max(b[2] for b in boxes)
+                uy2 = max(b[3] for b in boxes)
+                cv2.rectangle(view, (ux1, uy1), (ux2, uy2), (0, 255, 255), 2)
+
+
+            if active and len(persons) >= 2:
+                two_p_ctr += 1
+            else:
+                two_p_ctr = 0
 
             fight_active = False
+            can_classify = False
+
             if stage3 is not None:
-                view_s3 = cv2.resize(view, (320, 320), interpolation=cv2.INTER_LINEAR)
+                if len(persons) >= 2:
+                    view_s3 = make_union_crop(frame if frame_resized is None else frame_resized, persons, pad_ratio=0.15, out_size=320)
+                else:
+                    view_s3 = cv2.resize(view, (320, 320), interpolation=cv2.INTER_LINEAR)
+
                 clip.append(view_s3)
                 if len(clip) > stage3.clip_len:
-                    clip = clip[-stage3.clip_len :]
-
+                    clip = clip[-stage3.clip_len:]
                 stage3_ctr += 1
-                if len(persons) >= 2:
-                    two_p_ctr += 1
-                else:
-                    two_p_ctr = 0
 
                 can_classify = (
                     active
@@ -271,7 +366,20 @@ def main():
                 )
 
                 if can_classify:
+                    clip_path = clip_debug_dir / f"clip_{clip_save_idx:04d}.mp4"
+                    save_clip_mp4(clip, str(clip_path), fps=16.0)
+
                     last_fight_prob = stage3.infer(clip)
+
+                    print(
+                        f"[STAGE3] clip={clip_path.name} "
+                        f"fight_prob={last_fight_prob:.4f} "
+                        f"thr={args.fight_thr:.2f} "
+                        f"two_p_ctr={two_p_ctr} "
+                        f"clip_len={len(clip)}"
+                    )
+
+                    clip_save_idx += 1
                     if last_fight_prob >= args.fight_thr:
                         fight_on_ctr += 1
                         fight_off_ctr = 0
@@ -286,12 +394,28 @@ def main():
 
                 fight_active = fight_state
 
+            debug_ctr += 1
+            if debug_ctr % 15 == 0:
+                print(
+                    f"[PIPE] motion_active={int(active)} "
+                    f"yolo_ran={int(yolo_ran)} "
+                    f"persons={len(persons)} "
+                    f"conf={conf_list} "
+                    f"two_p_ctr={two_p_ctr} "
+                    f"stage3_ready={int(can_classify)} "
+                    f"fight_prob={last_fight_prob:.4f} "
+                    f"fight_state={int(fight_state)}"
+                )
+
             draw_text(view, f"fps={fps:.1f}", 10, 25)
             draw_text(view, f"motion={score:.4f} active={1 if active else 0}", 10, 50)
             draw_text(view, f"persons={len(persons)}", 10, 75)
+            draw_text(view, f"yolo_ran={1 if yolo_ran else 0}", 10, 100)
+            draw_text(view, f"two_p_ctr={two_p_ctr}", 10, 125)
+
             if stage3 is not None:
-                draw_text(view, f"fight_prob={last_fight_prob:.3f} thr={args.fight_thr:.2f}", 10, 100)
-                draw_text(view, "FIGHT" if fight_active else "NO_FIGHT", 10, 130)
+                draw_text(view, f"fight_prob={last_fight_prob:.3f} thr={args.fight_thr:.2f}", 10, 150)
+                draw_text(view, "FIGHT" if fight_active else "NO_FIGHT", 10, 175)
 
             if args.show:
                 cv2.imshow("fight_live", view)

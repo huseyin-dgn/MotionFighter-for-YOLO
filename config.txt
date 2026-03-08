@@ -1,0 +1,101 @@
+Hüseyin Doğan : Motion & YOLO
+
+method: bg_subtractor
+
+threshold_open: 0.035
+threshold_close: 0.015
+min_interval_ms: 0
+
+preprocess:
+  resize_width: 640
+  grayscale: true
+  blur_ksize: 5
+
+bg_subtractor:
+  history: 600
+  var_threshold: 70
+  detect_shadows: false
+  morph_ksize: 5
+
+postprocess:
+  min_contour_area: 180
+
+temporal:
+  window_size: 10
+  min_pass: 2
+
+roi:
+  enabled: false
+  ignore_zones: []
+
+motion_filters:
+  max_blob_ratio: 0.65
+  mean_jump_thr: 999
+
+fight:
+  activity:
+    thr_score: 0.0080
+    min_area: 450
+    min_moving_pixels: 600
+
+  normalize:
+    E_ref: 0.0200
+    V_ref: 10.0
+    F_ref: 4.0
+    D_ref: 25.0
+    C_ref: 0.55
+
+  weights:
+    wE: 0.25
+    wV: 0.25
+    wF: 0.15
+    wD: 0.20
+    wC: 0.15
+    wJR: 0.0
+
+  candidate:
+    thr_fight_score: 0.65
+
+  voting:
+    window: 16
+    need: 10
+
+  jitter_reject:
+    score_small: 0.0030
+    delta_big: 150
+    cc_max: 2
+
+  walk_filter:
+    enabled: true
+    max_speed: 2.6
+
+event:
+  warmup_frames: 60
+  pre_padding: 6
+  prebuf_len_base: 60
+  cooldown_frames: 60
+  post_padding: 60
+
+debug:
+  enabled: true
+  save_every_n_pass: 1
+  out_dir: "C:/temp/motion_debug"
+
+motion:
+  adaptive_thr: false
+  adapt_frames: 120
+  k_on: 6.0
+  k_off: 3.5
+  thr_min: 0.004
+  min_on_frames: 1
+  off_run: 2
+  gate_win: 16
+  prebuf: 11
+  max_event_len_frames: 240
+
+
+
+if self.frame_idx < int(self.cfg.warmup_frames):
+    lr = -1.0
+else:
+    lr = 0.002

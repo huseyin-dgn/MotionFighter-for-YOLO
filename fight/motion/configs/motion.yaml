@@ -1,7 +1,7 @@
 method: bg_subtractor
 
-threshold_open: 0.0080
-threshold_close: 0.0040
+threshold_open: 0.0020
+threshold_close: 0.0009
 min_interval_ms: 0
 
 preprocess:
@@ -11,16 +11,16 @@ preprocess:
 
 bg_subtractor:
   history: 600
-  var_threshold: 60
+  var_threshold: 70
   detect_shadows: false
   morph_ksize: 5
 
 postprocess:
-  min_contour_area: 120
+  min_contour_area: 80
 
 temporal:
-  window_size: 12
-  min_pass: 5
+  window_size: 8
+  min_pass: 2
 
 roi:
   enabled: false
@@ -68,7 +68,7 @@ fight:
     max_speed: 2.6
 
 event:
-  warmup_frames: 60
+  warmup_frames: 10
   pre_padding: 6
   prebuf_len_base: 60
   cooldown_frames: 60
@@ -80,15 +80,13 @@ debug:
   out_dir: "C:/temp/motion_debug"
 
 motion:
+  adaptive_thr: false
+  adapt_frames: 120
+  k_on: 6.0
+  k_off: 3.5
+  thr_min: 0.0005
+  min_on_frames: 1
+  off_run: 5
   gate_win: 16
   prebuf: 11
-
-  adaptive_thr: true
-  adapt_frames: 120
-  k_on: 8.0
-  k_off: 5.0
-  thr_min: 0.0020
-
-  min_on_frames: 10
-  off_run: 10
   max_event_len_frames: 240

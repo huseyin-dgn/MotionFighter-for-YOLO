@@ -9,14 +9,14 @@ from typing import Optional
 import cv2
 import numpy as np
 
-from fight.motion.src.core.config import MotionConfig
 from fight.motion.src.ingest.cam_reader import frame_generator
-from fight.motion.src.motion.bg_subtractor import BGSubtractor
+from fight.motion.src.core.config import MotionConfig
 from fight.motion.src.motion.frame_diff import FrameDiffer
 from fight.motion.src.motion.gate import MotionGate
 from fight.motion.src.motion.roi import apply_mask, build_ignore_mask
 from fight.motion.src.utils.image_ops import blur, resize_keep_aspect, to_gray
 from fight.motion.src.utils.logger import setup_logger
+from fight.motion.src.motion.bg_subtractor import BGSubtractor
 
 
 @dataclass
@@ -47,6 +47,8 @@ class _CSVTrace:
                 "gate_thr_used",
                 "gate_hist_sum",
                 "current_over_thr",
+                "motion_on_before",
+                "motion_on_after",
                 "diff_mean",
                 "diff_max",
                 "moving_px",
@@ -80,6 +82,13 @@ class MotionRunner:
             close_threshold=cfg.threshold_close,
             window_size=cfg.window_size,
             min_pass=cfg.min_pass,
+            adaptive_thr=cfg.motion_adaptive_thr,
+            adapt_frames=cfg.motion_adapt_frames,
+            k_on=cfg.motion_k_on,
+            k_off=cfg.motion_k_off,
+            thr_min=cfg.motion_thr_min,
+            min_on_frames=cfg.motion_min_on_frames,
+            off_run=cfg.motion_off_run,
         )
 
         self.differ = FrameDiffer()
@@ -164,7 +173,7 @@ class MotionRunner:
             if self.frame_idx < int(self.cfg.warmup_frames):
                 lr = -1.0
             else:
-                lr = 0.0
+                lr = 0.0005
             res = self.bgsub.compute(g_m, ignore_mask=self.ignore_mask, learning_rate=lr)
             raw_score = float(res.score)
             moving_px = int(np.count_nonzero(res.fgmask))
@@ -177,6 +186,15 @@ class MotionRunner:
             raise ValueError(f"Unknown method: {self.cfg.method}")
 
         dec = self.gate.decide(raw_score)
+
+        if self.frame_idx % 10 == 0:
+            print(
+                f"[motion] frame={self.frame_idx} "
+                f"raw={raw_score:.4f} thr={dec.thr_used:.4f} "
+                f"current={int(dec.current)} hist={dec.hist_sum} "
+                f"pass={int(dec.pass_frame)} reason={dec.reason} "
+                f"moving_px={moving_px} cc={cc} largest={largest_area} lr={lr_used}"
+            )
 
         if dec.pass_frame:
             self.pass_count += 1
@@ -194,6 +212,8 @@ class MotionRunner:
                     f"{dec.thr_used:.8f}",
                     dec.hist_sum,
                     int(dec.current),
+                    int(dec.motion_on_before),
+                    int(dec.motion_on_after),
                     diff_mean,
                     diff_max,
                     moving_px,
