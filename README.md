@@ -266,6 +266,18 @@ Bu proje aşağıdaki temel kütüphaneler ve araçlar kullanılarak geliştiril
 
 ---
 
+# ⚙️ Requirements
+
+Projeyi çalıştırmak için gerekli Python kütüphaneleri `requirements.txt` dosyasında yer almaktadır.
+
+Kurulum için:
+
+```text
+pip install -r requirements.txt
+```
+
+---
+
 # 🎯 Tasarım Hedefleri
 
 - 🚫 Full‑frame inference'dan kaçınmak
