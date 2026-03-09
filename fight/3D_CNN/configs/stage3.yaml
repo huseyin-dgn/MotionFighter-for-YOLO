@@ -5,7 +5,7 @@ model:
   amp: true
 
 input:
-  clip_len: 32
+  clip_len: 64
   size: 224
   fps_sample: 16
 

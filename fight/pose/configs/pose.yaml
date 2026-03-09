@@ -1,0 +1,27 @@
+model:
+  weights: yolo11n-pose.pt
+  device: 0
+  imgsz: 320
+  conf: 0.20
+  verbose: false
+
+input:
+  roi_size: 320
+
+filter:
+  min_persons: 2
+  min_kpt_conf: 0.20
+  min_valid_kpts: 4
+
+interaction:
+  max_center_dist_norm: 0.55
+  wrist_dist_norm: 0.40
+  upper_body_dist_norm: 0.45
+  min_interaction_score: 0.18
+
+temporal:
+  window_size: 5
+  need_positive: 1
+
+debug:
+  draw: true
