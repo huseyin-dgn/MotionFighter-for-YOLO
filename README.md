@@ -11,15 +11,19 @@ Bu tasarımın temel amacı, **her frame üzerinde doğrudan ağır derin öğre
 # 🚀 Pipeline Akışı
 
 ```text
-Motion Detection
+Video Stream
       ↓
-Person Detection (YOLO)
+Motion Detection (Hareket Analizi)
       ↓
-ROI Clip Generation
+Person Detection (YOLO ile kişi tespiti)
       ↓
-Pose Interaction Gate
+Interaction ROI Generation (etkileşim bölgesi çıkarımı)
       ↓
-3D CNN Temporal Classification
+Pose Interaction Gate (iskelet tabanlı etkileşim kontrolü)
+      ↓
+3D CNN Temporal Classification (zamansal hareket analizi)
+      ↓
+Fight / Non-Fight Decision
 ```
 
 Bu yaklaşım sayesinde:
