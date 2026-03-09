@@ -1,10 +1,10 @@
 # MotionFighter‑for‑YOLO 🥊🎯
 
-**MotionFighter-for-YOLO**, video akışları içerisinde kavga gibi agresif insan etkileşimlerini tespit etmek amacıyla geliştirilmiş **çok aşamalı (multi-stage) bir bilgisayarla görme pipeline’ıdır**. Sistem tek bir model kullanmak yerine ardışık çalışan birden fazla analiz katmanını birleştirir. Bu yaklaşım hem hesaplama maliyetini azaltmayı hem de sahnedeki insan davranışlarını daha güvenilir şekilde analiz etmeyi hedefler.
+**MotionFighter-for-YOLO**, video akışlarında kavga gibi agresif insan etkileşimlerini tespit etmek için geliştirilmiş **çok aşamalı (multi-stage) bir bilgisayarla görme pipeline’ıdır**. Sistem, tek bir ağır model yerine birden fazla analiz aşamasını ardışık olarak çalıştırarak hem hesaplama maliyetini azaltmayı hem de daha güvenilir sonuçlar üretmeyi amaçlar.
 
-Pipeline; **hareket analizi (motion detection)**, **kişi tespiti (YOLO tabanlı object detection)**, **pose (iskelet) tabanlı etkileşim analizi** ve **zamansal CNN sınıflandırması** gibi farklı bileşenlerden oluşur. İlk aşamalarda videodaki hareketli bölgeler tespit edilerek yalnızca anlamlı frame’ler seçilir. Ardından bu bölgelerde kişi tespiti yapılır ve sahnedeki insanlar arasındaki potansiyel etkileşim alanları belirlenir. Daha sonra pose tahmini kullanılarak insanların gerçekten fiziksel bir etkileşim içerisinde olup olmadığı analiz edilir. Son aşamada ise kısa video klipleri üzerinde çalışan bir **3D CNN modeli**, hareketin zamansal yapısını değerlendirerek olayın kavga olup olmadığına karar verir.
+Pipeline; **hareket analizi**, **YOLO tabanlı kişi tespiti**, **pose (iskelet) etkileşim analizi** ve **3D CNN tabanlı zamansal sınıflandırma** aşamalarından oluşur. Önce videodaki hareketli bölgeler belirlenir, ardından bu bölgelerde insanlar tespit edilir ve potansiyel etkileşim alanları çıkarılır. Pose analizi ile gerçek insan etkileşimleri filtrelenir ve son olarak 3D CNN modeli hareketin zamansal yapısını değerlendirerek olayın kavga olup olmadığına karar verir.
 
-Bu tasarımın temel amacı, **her frame üzerinde doğrudan ağır derin öğrenme modelleri çalıştırmak yerine yalnızca anlamlı hareket ve insan etkileşimi bulunan bölgeleri analiz etmektir**. Böylece sistem gereksiz hesaplama yükünden kaçınır, daha verimli çalışır ve aynı zamanda yanlış pozitif sonuçların azaltılmasına yardımcı olur. Bu çok aşamalı yaklaşım özellikle gerçek zamanlı video analizi, güvenlik sistemleri ve akıllı gözetim uygulamaları için daha ölçeklenebilir ve pratik bir çözüm sunar.
+Bu yaklaşım, **tüm frame’lerde ağır modeller çalıştırmak yerine yalnızca anlamlı sahneleri analiz ederek** daha verimli ve ölçeklenebilir bir video analiz sistemi sunar.
 
 ---
 
