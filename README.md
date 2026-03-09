@@ -6,6 +6,8 @@ Pipeline; **hareket analizi (motion detection)**, **kişi tespiti (YOLO tabanlı
 
 Bu tasarımın temel amacı, **her frame üzerinde doğrudan ağır derin öğrenme modelleri çalıştırmak yerine yalnızca anlamlı hareket ve insan etkileşimi bulunan bölgeleri analiz etmektir**. Böylece sistem gereksiz hesaplama yükünden kaçınır, daha verimli çalışır ve aynı zamanda yanlış pozitif sonuçların azaltılmasına yardımcı olur. Bu çok aşamalı yaklaşım özellikle gerçek zamanlı video analizi, güvenlik sistemleri ve akıllı gözetim uygulamaları için daha ölçeklenebilir ve pratik bir çözüm sunar.
 
+---
+
 # 🚀 Pipeline Akışı
 
 ```text
