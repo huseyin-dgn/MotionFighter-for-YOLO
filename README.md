@@ -153,7 +153,7 @@ fight/clip_debug/sample_2_annotated_20_24.gif
 
 ---
 
-# 📊 Experimental Results
+# 📊 Deneysel Sonuçlar
 
 Pipeline mimarisi, gereksiz frame’leri erken aşamada filtreleyerek hem hesaplama maliyetini azaltmayı hem de fight detection doğruluğunu artırmayı hedefler. Test videoları üzerinde yapılan deneylerde aşağıdaki performans değerleri gözlemlenmiştir.
 
@@ -243,6 +243,22 @@ fight
  ├── tools
  └── clip_debug
 ```
+
+---
+
+# 📦 Bağımlılıklar (Dependencies)
+
+Bu proje aşağıdaki temel kütüphaneler ve araçlar kullanılarak geliştirilmiştir:
+
+- Python 3.10+
+- PyTorch
+- Torchvision
+- Ultralytics (YOLO)
+- OpenCV
+- NumPy
+- PyYAML
+- tqdm
+- Pillow
 
 ---
 
